@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '서비스 이름을 입력해주세요.' }, { status: 400 });
     }
 
-    const thumbnailUrl = `https://image.thum.io/get/width/600/crop/400/${encodeURIComponent(url.trim())}`;
+    const thumbnailUrl = `https://image.thum.io/get/width/600/crop/400/${url.trim()}`;
 
     const result = await pool.query(
       `INSERT INTO services (url, title, thumbnail_url)

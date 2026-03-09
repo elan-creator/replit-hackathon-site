@@ -24,12 +24,12 @@ export default function ServiceFeedbackPage() {
   const [service, setService] = useState<Service | null>(null);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(true);
-  const [authorName, setAuthorName] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -57,9 +57,7 @@ export default function ServiceFeedbackPage() {
     fetchData();
   }, [fetchData]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const processImageFile = (file: File) => {
     if (file.size > 5 * 1024 * 1024) {
       setError('이미지는 5MB 이하만 첨부할 수 있습니다.');
       return;
@@ -67,6 +65,25 @@ export default function ServiceFeedbackPage() {
     const reader = new FileReader();
     reader.onload = () => setImagePreview(reader.result as string);
     reader.readAsDataURL(file);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processImageFile(file);
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) processImageFile(file);
+        return;
+      }
+    }
   };
 
   const removeImage = () => {
@@ -83,7 +100,6 @@ export default function ServiceFeedbackPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          author_name: authorName,
           feedback_text: feedbackText,
           image_data: imagePreview,
         }),
@@ -153,23 +169,13 @@ export default function ServiceFeedbackPage() {
         <h2 className="text-lg font-semibold text-white mb-4">피드백 남기기</h2>
         <form onSubmit={handleSubmit} className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
           <div>
-            <label className="block text-xs text-gray-400 mb-1">이름 *</label>
-            <input
-              type="text"
-              value={authorName}
-              onChange={e => setAuthorName(e.target.value)}
-              placeholder="이름을 입력하세요"
-              required
-              maxLength={100}
-              className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
-            />
-          </div>
-          <div>
             <label className="block text-xs text-gray-400 mb-1">피드백 내용 *</label>
             <textarea
+              ref={textareaRef}
               value={feedbackText}
               onChange={e => setFeedbackText(e.target.value)}
-              placeholder="서비스에 대한 피드백을 작성해주세요..."
+              onPaste={handlePaste}
+              placeholder="서비스에 대한 피드백을 작성해주세요... (이미지를 Ctrl+V로 붙여넣을 수 있습니다)"
               required
               maxLength={5000}
               rows={4}
@@ -178,7 +184,7 @@ export default function ServiceFeedbackPage() {
             <div className="text-right text-xs text-gray-500 mt-1">{feedbackText.length}/5000</div>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">스크린샷 첨부 (선택)</label>
+            <label className="block text-xs text-gray-400 mb-1">스크린샷 첨부 (선택, 또는 위 텍스트 영역에 Ctrl+V)</label>
             <input
               ref={fileRef}
               type="file"
@@ -223,7 +229,6 @@ export default function ServiceFeedbackPage() {
             {feedbacks.map(fb => (
               <div key={fb.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm font-medium text-blue-400">{fb.author_name}</span>
                   <span className="text-xs text-gray-500">
                     {new Date(fb.created_at).toLocaleDateString('ko-KR')}
                   </span>

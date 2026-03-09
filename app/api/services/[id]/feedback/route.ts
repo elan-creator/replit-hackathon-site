@@ -43,9 +43,9 @@ export async function POST(
     const body = await req.json();
     const { author_name, feedback_text, image_data } = body;
 
-    if (!author_name || typeof author_name !== 'string' || author_name.trim().length === 0 || author_name.length > 100) {
-      return NextResponse.json({ error: '이름을 입력해주세요. (최대 100자)' }, { status: 400 });
-    }
+    const finalAuthorName = (author_name && typeof author_name === 'string' && author_name.trim().length > 0)
+      ? author_name.trim().slice(0, 100)
+      : '익명';
     if (!feedback_text || typeof feedback_text !== 'string' || feedback_text.trim().length === 0 || feedback_text.length > 5000) {
       return NextResponse.json({ error: '피드백을 입력해주세요. (최대 5000자)' }, { status: 400 });
     }
@@ -60,7 +60,7 @@ export async function POST(
         serviceId,
         service.url,
         service.title,
-        author_name.trim(),
+        finalAuthorName,
         feedback_text.trim(),
         image_data || null,
       ]
