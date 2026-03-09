@@ -18,7 +18,6 @@ export default function FeedbackPage() {
   const [showForm, setShowForm] = useState(false);
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
-  const [adminPassword, setAdminPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -48,7 +47,7 @@ export default function FeedbackPage() {
       const res = await fetch('/api/services', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, title, admin_password: adminPassword }),
+        body: JSON.stringify({ url, title }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -82,8 +81,8 @@ export default function FeedbackPage() {
 
       {showForm && (
         <form onSubmit={handleAddService} className="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-6 space-y-4">
-          <h3 className="text-sm font-medium text-white">새 서비스 등록 (관리자)</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <h3 className="text-sm font-medium text-white">새 서비스 등록</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-gray-400 mb-1">서비스 URL *</label>
               <input
@@ -102,17 +101,6 @@ export default function FeedbackPage() {
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 placeholder="프로젝트 이름"
-                required
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">관리자 비밀번호 *</label>
-              <input
-                type="password"
-                value={adminPassword}
-                onChange={e => setAdminPassword(e.target.value)}
-                placeholder="비밀번호"
                 required
                 className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
               />

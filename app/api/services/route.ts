@@ -20,12 +20,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { url, title, admin_password } = body;
-
-    const expectedPassword = process.env.ADMIN_PASSWORD;
-    if (!expectedPassword || admin_password !== expectedPassword) {
-      return NextResponse.json({ error: '관리자 비밀번호가 올바르지 않습니다.' }, { status: 403 });
-    }
+    const { url, title } = body;
 
     if (!url || typeof url !== 'string' || url.trim().length === 0) {
       return NextResponse.json({ error: '서비스 URL을 입력해주세요.' }, { status: 400 });
