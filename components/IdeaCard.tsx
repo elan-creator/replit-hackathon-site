@@ -21,7 +21,7 @@ export default function IdeaCard({ idea }: { idea: Idea }) {
         </span>
       </div>
 
-      <p className="text-gray-200 text-sm leading-relaxed whitespace-pre-wrap mb-4">
+      <p className="text-gray-200 text-sm leading-relaxed whitespace-pre-wrap mb-4 overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 8, WebkitBoxOrient: 'vertical' }}>
         {idea.idea_text}
       </p>
 
