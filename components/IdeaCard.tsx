@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 interface Idea {
   id: number;
   author_name: string;
@@ -13,7 +15,7 @@ export default function IdeaCard({ idea }: { idea: Idea }) {
   const hasRefinement = idea.refinement_q1 && idea.refinement_a1;
 
   return (
-    <div className="p-5 bg-gray-900 border border-gray-800 rounded-xl hover:border-gray-700 transition-colors">
+    <Link href={`/ideas/${idea.id}`} className="block p-5 bg-gray-900 border border-gray-800 rounded-xl hover:border-blue-600 transition-colors cursor-pointer">
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-medium text-blue-400">{idea.author_name}</span>
         <span className="text-xs text-gray-500">
@@ -48,6 +50,6 @@ export default function IdeaCard({ idea }: { idea: Idea }) {
           <span className="text-xs text-gray-500 italic">아직 다듬기 전이에요</span>
         </div>
       )}
-    </div>
+    </Link>
   );
 }
