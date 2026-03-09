@@ -1,128 +1,173 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import FeedbackForm from '@/components/FeedbackForm';
+import Link from 'next/link';
 
-interface Feedback {
+interface Service {
   id: number;
-  service_url: string;
-  service_title: string;
-  author_name: string;
-  feedback_text: string;
-  image_data: string | null;
+  url: string;
+  title: string;
+  thumbnail_url: string | null;
+  feedback_count: number;
   created_at: string;
 }
 
-interface ServiceGroup {
-  url: string;
-  title: string;
-  feedbacks: Feedback[];
-}
-
 export default function FeedbackPage() {
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [url, setUrl] = useState('');
+  const [title, setTitle] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  const fetchFeedbacks = useCallback(async () => {
+  const fetchServices = useCallback(async () => {
     try {
-      const res = await fetch('/api/feedback');
-      const data = await res.json();
-      setFeedbacks(data);
+      const res = await fetch('/api/services');
+      if (res.ok) {
+        const data = await res.json();
+        setServices(data);
+      }
     } catch {
-      console.error('Failed to fetch feedbacks');
+      console.error('Failed to fetch services');
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchFeedbacks();
-  }, [fetchFeedbacks]);
+    fetchServices();
+  }, [fetchServices]);
 
-  const grouped: ServiceGroup[] = [];
-  const urlMap = new Map<string, ServiceGroup>();
-  for (const fb of feedbacks) {
-    if (!urlMap.has(fb.service_url)) {
-      const group: ServiceGroup = {
-        url: fb.service_url,
-        title: fb.service_title || fb.service_url,
-        feedbacks: [],
-      };
-      urlMap.set(fb.service_url, group);
-      grouped.push(group);
+  const handleAddService = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/services', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, title, admin_password: adminPassword }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || '서비스 등록에 실패했습니다.');
+      }
+      setUrl('');
+      setTitle('');
+      setShowForm(false);
+      fetchServices();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '오류가 발생했습니다.');
+    } finally {
+      setSubmitting(false);
     }
-    urlMap.get(fb.service_url)!.feedbacks.push(fb);
-  }
+  };
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-white mb-2">서비스 피드백</h1>
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-3xl font-bold text-white">서비스 피드백</h1>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          {showForm ? '닫기' : '서비스 등록'}
+        </button>
+      </div>
       <p className="text-gray-400 text-sm mb-6">
-        참가자들의 서비스에 피드백을 남겨주세요. 서비스 URL을 입력하고, 텍스트와 스크린샷으로 의견을 전달할 수 있습니다.
+        등록된 서비스를 클릭하여 피드백을 남겨주세요.
       </p>
 
-      <FeedbackForm onSubmitted={fetchFeedbacks} />
-
-      <div className="mt-10">
-        <h2 className="text-xl font-semibold text-white mb-4">
-          {grouped.length > 0 ? `${grouped.length}개 서비스에 피드백이 등록되었습니다.` : ''}
-        </h2>
-
-        {loading ? (
-          <p className="text-gray-500 text-sm">불러오는 중...</p>
-        ) : grouped.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-5xl mb-4">💬</div>
-            <p className="text-gray-400">아직 등록된 피드백이 없습니다. 첫 번째 피드백을 남겨보세요!</p>
+      {showForm && (
+        <form onSubmit={handleAddService} className="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-6 space-y-4">
+          <h3 className="text-sm font-medium text-white">새 서비스 등록 (관리자)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">서비스 URL *</label>
+              <input
+                type="url"
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+                placeholder="https://..."
+                required
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">서비스 이름 *</label>
+              <input
+                type="text"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                placeholder="프로젝트 이름"
+                required
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">관리자 비밀번호 *</label>
+              <input
+                type="password"
+                value={adminPassword}
+                onChange={e => setAdminPassword(e.target.value)}
+                placeholder="비밀번호"
+                required
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
+              />
+            </div>
           </div>
-        ) : (
-          <div className="space-y-6">
-            {grouped.map(group => (
-              <div key={group.url} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-base font-semibold text-white">
-                      {group.title !== group.url ? group.title : ''}
-                    </h3>
-                    <a
-                      href={group.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-400 hover:underline break-all"
-                    >
-                      {group.url}
-                    </a>
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+          <button
+            type="submit"
+            disabled={submitting}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            {submitting ? '등록 중...' : '등록'}
+          </button>
+        </form>
+      )}
+
+      {loading ? (
+        <p className="text-gray-500 text-sm">불러오는 중...</p>
+      ) : services.length === 0 ? (
+        <div className="text-center py-16">
+          <div className="text-5xl mb-4">💬</div>
+          <p className="text-gray-400">등록된 서비스가 없습니다.</p>
+          <p className="text-gray-500 text-sm mt-1">관리자가 서비스를 등록하면 여기에 표시됩니다.</p>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {services.map(service => (
+            <Link
+              key={service.id}
+              href={`/feedback/${service.id}`}
+              className="block bg-gray-900 border border-gray-800 rounded-xl overflow-hidden hover:border-blue-600 transition-colors"
+            >
+              <div className="aspect-[3/2] bg-gray-800 overflow-hidden">
+                {service.thumbnail_url ? (
+                  <img
+                    src={service.thumbnail_url}
+                    alt={service.title}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-600">
+                    <span className="text-4xl">🌐</span>
                   </div>
-                  <span className="text-xs text-gray-500 shrink-0 ml-2">
-                    {group.feedbacks.length}개 피드백
-                  </span>
-                </div>
-
-                <div className="space-y-3">
-                  {group.feedbacks.map(fb => (
-                    <div key={fb.id} className="pl-4 border-l-2 border-gray-700">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-medium text-blue-400">{fb.author_name}</span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(fb.created_at).toLocaleDateString('ko-KR')}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-300 whitespace-pre-wrap">{fb.feedback_text}</p>
-                      {fb.image_data && (
-                        <img
-                          src={fb.image_data}
-                          alt="첨부 이미지"
-                          className="mt-2 max-h-60 rounded-lg border border-gray-700"
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
+                )}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              <div className="p-4">
+                <h3 className="text-sm font-semibold text-white mb-1">{service.title}</h3>
+                <p className="text-xs text-gray-500 truncate mb-2">{service.url}</p>
+                <span className="text-xs text-blue-400">{service.feedback_count}개 피드백</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

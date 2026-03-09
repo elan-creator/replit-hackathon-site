@@ -19,14 +19,14 @@ A Next.js documentation/content site with an idea preparation feature for worksh
   - `app/feedback/` — Service feedback feature
   - `app/retro/` — Daily retrospective (KPT) feature
   - `app/api/ideas/` — API routes for idea CRUD and AI refinement
-  - `app/api/feedback/` — API routes for service feedback
+  - `app/api/services/` — API routes for service management and per-service feedback
+  - `app/api/feedback/` — Legacy API for service feedback
   - `app/api/retrospectives/` — API routes for daily retrospectives
 - `components/` — Shared React components
   - `DocsLayout.tsx`, `Sidebar.tsx` — Documentation layout
   - `IdeaForm.tsx` — Idea submission form
   - `RefineChat.tsx` — AI-powered idea refinement chat UI
   - `IdeaCard.tsx` — Idea display card for gallery
-  - `FeedbackForm.tsx` — Service feedback form (text + image)
   - `RetroForm.tsx` — KPT retrospective form
 - `content/` — MDX/markdown content files
 - `lib/` — Utility functions
@@ -48,9 +48,10 @@ A Next.js documentation/content site with an idea preparation feature for worksh
 - **Detail**: Click a card to view full idea with refinement Q&A (`/ideas/[id]`)
 
 ### Service Feedback (`/feedback`)
-- Submit feedback on participants' services (text + optional screenshot)
-- Multiple people can leave feedback on the same service URL
-- Feedbacks grouped by service URL
+- Admin registers service URLs → auto-generates thumbnail via thum.io
+- Services displayed as card grid with thumbnails
+- Click a service card → detail page with feedback form and feedback list
+- Multiple participants can leave feedback (text + optional screenshot) on each service
 
 ### Daily Retrospective (`/retro`)
 - KPT (Keep, Problem, Try) framework
@@ -60,7 +61,8 @@ A Next.js documentation/content site with an idea preparation feature for worksh
 ## Database Schema
 
 - `ideas` table: id, author_name, idea_text, refinement_q1/a1, refinement_q2/a2, created_at
-- `feedbacks` table: id, service_url, service_title, author_name, feedback_text, image_data (base64), created_at
+- `services` table: id, url (UNIQUE), title, thumbnail_url, created_at
+- `feedbacks` table: id, service_id (FK→services), service_url, service_title, author_name, feedback_text, image_data (base64), created_at
 - `retrospectives` table: id, author_name, keep_text, problem_text, try_text, created_at
 
 ## Running the App
