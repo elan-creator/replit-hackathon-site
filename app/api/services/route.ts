@@ -37,12 +37,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '서비스 이름을 입력해주세요.' }, { status: 400 });
     }
 
-    const thumbnailUrl = `https://image.thum.io/get/width/600/crop/400/${url.trim()}`;
+    let thumbnailData: string | null = null;
+    try {
+      const thumbUrl = `https://image.thum.io/get/width/600/crop/400/${url.trim()}`;
+      const thumbRes = await fetch(thumbUrl, { signal: AbortSignal.timeout(15000) });
+      if (thumbRes.ok) {
+        const buffer = await thumbRes.arrayBuffer();
+        const contentType = thumbRes.headers.get('content-type') || 'image/png';
+        const base64 = Buffer.from(buffer).toString('base64');
+        thumbnailData = `data:${contentType};base64,${base64}`;
+      }
+    } catch (e) {
+      console.warn('Failed to fetch thumbnail, proceeding without it:', e);
+    }
 
     const result = await pool.query(
       `INSERT INTO services (url, title, thumbnail_url)
        VALUES ($1, $2, $3) RETURNING *`,
-      [url.trim(), title.trim(), thumbnailUrl]
+      [url.trim(), title.trim(), thumbnailData]
     );
 
     return NextResponse.json(result.rows[0], { status: 201 });

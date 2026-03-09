@@ -34,13 +34,11 @@ export default function ServiceFeedbackPage() {
   const fetchData = useCallback(async () => {
     try {
       const [svcRes, fbRes] = await Promise.all([
-        fetch(`/api/services`),
+        fetch(`/api/services/${id}`),
         fetch(`/api/services/${id}/feedback`),
       ]);
       if (svcRes.ok) {
-        const allServices = await svcRes.json();
-        const svc = allServices.find((s: Service) => s.id === parseInt(id));
-        setService(svc || null);
+        setService(await svcRes.json());
       }
       if (fbRes.ok) {
         const data = await fbRes.json();
