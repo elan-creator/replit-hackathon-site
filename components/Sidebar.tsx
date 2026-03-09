@@ -49,6 +49,15 @@ export default function Sidebar({ navigation, isOpen, onClose }: { navigation: N
             🚀 워크샵 문서
           </Link>
         </div>
+        <div className="p-3 border-b border-gray-800">
+          <Link
+            href="/ideas"
+            onClick={onClose}
+            className="flex items-center gap-2 px-2 py-1.5 text-gray-300 hover:text-white font-medium text-sm"
+          >
+            💡 아이디어 보드
+          </Link>
+        </div>
         <nav className="p-3 text-sm">
           {navigation.map(section => (
             <div key={section.name} className="mb-2">
