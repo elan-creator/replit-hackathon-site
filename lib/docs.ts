@@ -63,10 +63,9 @@ export function getNavigation(): NavSection[] {
   const docs = getAllDocs();
   const sections: Map<string, Map<string, { slug: string; title: string }[]>> = new Map();
   
-  const sectionOrder = ['가이드', 'daily-feedback', 'references'];
+  const sectionOrder = ['가이드', 'references'];
   const subsectionOrder: Record<string, string[]> = {
     '가이드': ['0-사전설치', '1-스킬개념-실습', '2-바이브코딩-기초', '3-연동-설정가이드', '4-스킬만들기-실습'],
-    'daily-feedback': ['연동가이드', ''],
     'references': [''],
   };
 

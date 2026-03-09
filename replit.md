@@ -15,13 +15,19 @@ A Next.js documentation/content site with an idea preparation feature for worksh
 
 - `app/` — Next.js App Router pages and layouts
   - `app/docs/` — Documentation pages (dynamic routing from content/)
-  - `app/ideas/` — Idea board feature (form, refinement, gallery)
+  - `app/ideas/` — Idea board feature (form, refinement, gallery, detail)
+  - `app/feedback/` — Service feedback feature
+  - `app/retro/` — Daily retrospective (KPT) feature
   - `app/api/ideas/` — API routes for idea CRUD and AI refinement
+  - `app/api/feedback/` — API routes for service feedback
+  - `app/api/retrospectives/` — API routes for daily retrospectives
 - `components/` — Shared React components
   - `DocsLayout.tsx`, `Sidebar.tsx` — Documentation layout
   - `IdeaForm.tsx` — Idea submission form
   - `RefineChat.tsx` — AI-powered idea refinement chat UI
   - `IdeaCard.tsx` — Idea display card for gallery
+  - `FeedbackForm.tsx` — Service feedback form (text + image)
+  - `RetroForm.tsx` — KPT retrospective form
 - `content/` — MDX/markdown content files
 - `lib/` — Utility functions
   - `db.ts` — PostgreSQL connection pool
@@ -39,10 +45,23 @@ A Next.js documentation/content site with an idea preparation feature for worksh
 - **Submit**: Free-form idea submission with author name
 - **Refine**: AI generates 2 contextual follow-up questions based on idea content
 - **Gallery**: View all submitted ideas in a card grid (`/ideas/gallery`)
+- **Detail**: Click a card to view full idea with refinement Q&A (`/ideas/[id]`)
+
+### Service Feedback (`/feedback`)
+- Submit feedback on participants' services (text + optional screenshot)
+- Multiple people can leave feedback on the same service URL
+- Feedbacks grouped by service URL
+
+### Daily Retrospective (`/retro`)
+- KPT (Keep, Problem, Try) framework
+- Submit and share retrospectives with other participants
+- View all retrospectives in a card grid
 
 ## Database Schema
 
 - `ideas` table: id, author_name, idea_text, refinement_q1/a1, refinement_q2/a2, created_at
+- `feedbacks` table: id, service_url, service_title, author_name, feedback_text, image_data (base64), created_at
+- `retrospectives` table: id, author_name, keep_text, problem_text, try_text, created_at
 
 ## Running the App
 

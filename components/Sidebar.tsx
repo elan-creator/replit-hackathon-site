@@ -22,7 +22,7 @@ interface NavSection {
 export default function Sidebar({ navigation, isOpen, onClose }: { navigation: NavSection[]; isOpen: boolean; onClose: () => void }) {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
-    const init: Record<string, boolean> = { ideas: true };
+    const init: Record<string, boolean> = { ideas: true, activity: true };
     for (const sec of navigation) {
       init[sec.name] = true;
       for (const sub of sec.children) {
@@ -36,7 +36,6 @@ export default function Sidebar({ navigation, isOpen, onClose }: { navigation: N
 
   const sectionLabels: Record<string, string> = {
     '가이드': '📚 가이드',
-    'daily-feedback': '📝 daily-feedback',
     'references': '📖 references',
   };
 
@@ -50,39 +49,55 @@ export default function Sidebar({ navigation, isOpen, onClose }: { navigation: N
           </Link>
         </div>
         <nav className="p-3 text-sm">
-          <div className="mb-2">
-            <button
-              onClick={() => toggle('ideas')}
-              className="w-full flex items-center justify-between px-2 py-1.5 text-gray-300 hover:text-white font-medium"
-            >
-              <span>💡 아이디어 보드</span>
-              <span className="text-xs">{expanded['ideas'] ? '▼' : '▶'}</span>
-            </button>
-            {expanded['ideas'] && (
-              <div className="ml-4">
-                {[
-                  { href: '/ideas', label: '새 아이디어 작성' },
-                  { href: '/ideas/gallery', label: '모아보기' },
-                ].map(item => {
-                  const isActive = decodeURIComponent(pathname) === item.href;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={onClose}
-                      className={`block px-2 py-1 rounded text-xs ${
-                        isActive
-                          ? 'bg-blue-600/20 text-blue-400 font-medium'
-                          : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          {[
+            {
+              key: 'ideas',
+              label: '💡 아이디어 보드',
+              items: [
+                { href: '/ideas', label: '새 아이디어 작성' },
+                { href: '/ideas/gallery', label: '모아보기' },
+              ],
+            },
+            {
+              key: 'activity',
+              label: '📝 참가자 활동',
+              items: [
+                { href: '/feedback', label: '서비스 피드백' },
+                { href: '/retro', label: '일일 회고' },
+              ],
+            },
+          ].map(section => (
+            <div key={section.key} className="mb-2">
+              <button
+                onClick={() => toggle(section.key)}
+                className="w-full flex items-center justify-between px-2 py-1.5 text-gray-300 hover:text-white font-medium"
+              >
+                <span>{section.label}</span>
+                <span className="text-xs">{expanded[section.key] ? '▼' : '▶'}</span>
+              </button>
+              {expanded[section.key] && (
+                <div className="ml-4">
+                  {section.items.map(item => {
+                    const isActive = decodeURIComponent(pathname) === item.href;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={onClose}
+                        className={`block px-2 py-1 rounded text-xs ${
+                          isActive
+                            ? 'bg-blue-600/20 text-blue-400 font-medium'
+                            : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                        }`}
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ))}
           {navigation.map(section => (
             <div key={section.name} className="mb-2">
               <button
