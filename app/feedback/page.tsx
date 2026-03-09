@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import DeleteButton from '@/components/DeleteButton';
 
 interface Service {
   id: number;
@@ -128,31 +129,45 @@ export default function FeedbackPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {services.map(service => (
-            <Link
-              key={service.id}
-              href={`/feedback/${service.id}`}
-              className="block bg-gray-900 border border-gray-800 rounded-xl overflow-hidden hover:border-blue-600 transition-colors"
-            >
-              <div className="aspect-[3/2] bg-gray-800 overflow-hidden">
-                {service.thumbnail_url ? (
-                  <img
-                    src={service.thumbnail_url}
-                    alt={service.title}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-600">
-                    <span className="text-4xl">🌐</span>
-                  </div>
-                )}
+            <div key={service.id} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden hover:border-blue-600 transition-colors">
+              <Link href={`/feedback/${service.id}`} className="block">
+                <div className="aspect-[3/2] bg-gray-800 overflow-hidden">
+                  {service.thumbnail_url ? (
+                    <img
+                      src={service.thumbnail_url}
+                      alt={service.title}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-600">
+                      <span className="text-4xl">🌐</span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <h3 className="text-sm font-semibold text-white mb-1">{service.title}</h3>
+                  <p className="text-xs text-gray-500 truncate mb-2">{service.url}</p>
+                  <span className="text-xs text-blue-400">{service.feedback_count}개 피드백</span>
+                </div>
+              </Link>
+              <div className="px-4 pb-3 flex justify-end">
+                <DeleteButton
+                  onDelete={async (password: string) => {
+                    const res = await fetch(`/api/services/${service.id}`, {
+                      method: 'DELETE',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ password }),
+                    });
+                    if (!res.ok) {
+                      const data = await res.json();
+                      throw new Error(data.error || '삭제 실패');
+                    }
+                    fetchServices();
+                  }}
+                />
               </div>
-              <div className="p-4">
-                <h3 className="text-sm font-semibold text-white mb-1">{service.title}</h3>
-                <p className="text-xs text-gray-500 truncate mb-2">{service.url}</p>
-                <span className="text-xs text-blue-400">{service.feedback_count}개 피드백</span>
-              </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}

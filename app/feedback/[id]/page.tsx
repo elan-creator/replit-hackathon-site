@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import DeleteButton from '@/components/DeleteButton';
 
 interface Service {
   id: number;
@@ -226,10 +227,24 @@ export default function ServiceFeedbackPage() {
           <div className="space-y-3">
             {feedbacks.map(fb => (
               <div key={fb.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center justify-between mb-2">
                   <span className="text-xs text-gray-500">
                     {new Date(fb.created_at).toLocaleDateString('ko-KR')}
                   </span>
+                  <DeleteButton
+                    onDelete={async (password: string) => {
+                      const res = await fetch(`/api/feedbacks/${fb.id}`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password }),
+                      });
+                      if (!res.ok) {
+                        const data = await res.json();
+                        throw new Error(data.error || '삭제 실패');
+                      }
+                      fetchData();
+                    }}
+                  />
                 </div>
                 <p className="text-sm text-gray-300 whitespace-pre-wrap">{fb.feedback_text}</p>
                 {fb.image_data && (

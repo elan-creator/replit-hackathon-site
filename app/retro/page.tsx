@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import RetroForm from '@/components/RetroForm';
+import DeleteButton from '@/components/DeleteButton';
 
 interface Retrospective {
   id: number;
@@ -59,9 +60,25 @@ export default function RetroPage() {
               <div key={retro.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-medium text-blue-400">{retro.author_name}</span>
-                  <span className="text-xs text-gray-500">
-                    {new Date(retro.created_at).toLocaleDateString('ko-KR')}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-500">
+                      {new Date(retro.created_at).toLocaleDateString('ko-KR')}
+                    </span>
+                    <DeleteButton
+                      onDelete={async (password: string) => {
+                        const res = await fetch(`/api/retrospectives/${retro.id}`, {
+                          method: 'DELETE',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ password }),
+                        });
+                        if (!res.ok) {
+                          const data = await res.json();
+                          throw new Error(data.error || '삭제 실패');
+                        }
+                        fetchRetros();
+                      }}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-3">

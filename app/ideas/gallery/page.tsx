@@ -1,12 +1,38 @@
-import pool from '@/lib/db';
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
 import IdeaCard from '@/components/IdeaCard';
 import Link from 'next/link';
 
-export const dynamic = 'force-dynamic';
+interface Idea {
+  id: number;
+  author_name: string;
+  idea_text: string;
+  refinement_q1: string | null;
+  refinement_a1: string | null;
+  refinement_q2: string | null;
+  refinement_a2: string | null;
+  created_at: string;
+}
 
-export default async function GalleryPage() {
-  const result = await pool.query('SELECT * FROM ideas ORDER BY created_at DESC');
-  const ideas = result.rows;
+export default function GalleryPage() {
+  const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchIdeas = useCallback(async () => {
+    try {
+      const res = await fetch('/api/ideas');
+      if (res.ok) setIdeas(await res.json());
+    } catch {
+      console.error('Failed to fetch ideas');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchIdeas();
+  }, [fetchIdeas]);
 
   return (
     <div>
@@ -14,9 +40,11 @@ export default async function GalleryPage() {
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">아이디어 모아보기</h1>
           <p className="text-gray-400 text-sm">
-            {ideas.length > 0
-              ? `총 ${ideas.length}개의 아이디어가 등록되었습니다.`
-              : '아직 등록된 아이디어가 없습니다.'}
+            {loading
+              ? '불러오는 중...'
+              : ideas.length > 0
+                ? `총 ${ideas.length}개의 아이디어가 등록되었습니다.`
+                : '아직 등록된 아이디어가 없습니다.'}
           </p>
         </div>
         <Link
@@ -27,7 +55,7 @@ export default async function GalleryPage() {
         </Link>
       </div>
 
-      {ideas.length === 0 ? (
+      {!loading && ideas.length === 0 ? (
         <div className="text-center py-16">
           <div className="text-5xl mb-4">💭</div>
           <p className="text-gray-400">첫 번째 아이디어를 등록해보세요!</p>
@@ -35,7 +63,7 @@ export default async function GalleryPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {ideas.map((idea) => (
-            <IdeaCard key={idea.id} idea={idea} />
+            <IdeaCard key={idea.id} idea={idea} onDeleted={fetchIdeas} />
           ))}
         </div>
       )}
