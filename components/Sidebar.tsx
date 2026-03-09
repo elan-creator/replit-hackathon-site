@@ -22,7 +22,7 @@ interface NavSection {
 export default function Sidebar({ navigation, isOpen, onClose }: { navigation: NavSection[]; isOpen: boolean; onClose: () => void }) {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
-    const init: Record<string, boolean> = {};
+    const init: Record<string, boolean> = { ideas: true };
     for (const sec of navigation) {
       init[sec.name] = true;
       for (const sub of sec.children) {
@@ -49,16 +49,40 @@ export default function Sidebar({ navigation, isOpen, onClose }: { navigation: N
             🚀 워크샵 문서
           </Link>
         </div>
-        <div className="p-3 border-b border-gray-800">
-          <Link
-            href="/ideas"
-            onClick={onClose}
-            className="flex items-center gap-2 px-2 py-1.5 text-gray-300 hover:text-white font-medium text-sm"
-          >
-            💡 아이디어 보드
-          </Link>
-        </div>
         <nav className="p-3 text-sm">
+          <div className="mb-2">
+            <button
+              onClick={() => toggle('ideas')}
+              className="w-full flex items-center justify-between px-2 py-1.5 text-gray-300 hover:text-white font-medium"
+            >
+              <span>💡 아이디어 보드</span>
+              <span className="text-xs">{expanded['ideas'] ? '▼' : '▶'}</span>
+            </button>
+            {expanded['ideas'] && (
+              <div className="ml-4">
+                {[
+                  { href: '/ideas', label: '새 아이디어 작성' },
+                  { href: '/ideas/gallery', label: '모아보기' },
+                ].map(item => {
+                  const isActive = decodeURIComponent(pathname) === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={onClose}
+                      className={`block px-2 py-1 rounded text-xs ${
+                        isActive
+                          ? 'bg-blue-600/20 text-blue-400 font-medium'
+                          : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
           {navigation.map(section => (
             <div key={section.name} className="mb-2">
               <button
