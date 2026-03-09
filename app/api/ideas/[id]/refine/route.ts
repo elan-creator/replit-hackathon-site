@@ -26,31 +26,58 @@ export async function POST(
       return NextResponse.json({ error: 'step must be 1 or 2' }, { status: 400 });
     }
 
-    let context = `아이디어: ${idea.idea_text}`;
+    let systemPrompt: string;
+    let userContent: string;
 
-    if (step === 2 && idea.refinement_q1 && idea.refinement_a1) {
-      context += `\n\n이전 질문: ${idea.refinement_q1}\n답변: ${idea.refinement_a1}`;
+    if (step === 1) {
+      systemPrompt = `당신은 PRD(제품 요구사항 문서)를 작성하기 위해 아이디어를 구체화시키는 프로덕트 코치입니다.
+
+참석자의 아이디어를 분석하고, 아래 PRD 핵심 요소 중 가장 부족한 1가지를 골라 구체적인 질문을 하세요:
+- 타겟 사용자: 누가 이걸 쓸 건지, 어떤 상황에서 쓸 건지
+- 핵심 문제: 지금 이 사람들이 겪고 있는 구체적인 불편함이 뭔지
+- 사용 시나리오: 사용자가 이 앱을 열고 가장 먼저 하는 행동이 뭔지
+- MVP 기능: 첫 버전에 반드시 들어가야 할 기능 1~2개가 뭔지
+- 데이터: 어떤 데이터를 입력받고 어떤 결과를 보여줄 건지
+
+규칙:
+- 질문은 한국어로, 2문장 이내로 작성
+- "더 자세히 알려주세요", "어떤 건가요?" 같은 뜻풀이용 질문 금지
+- 반드시 아이디어 내용을 언급하면서 구체적으로 물어볼 것
+- 질문만 출력하세요`;
+      userContent = `아이디어: ${idea.idea_text}`;
+    } else {
+      systemPrompt = `당신은 PRD(제품 요구사항 문서)를 작성하기 위해 아이디어를 디벨롭시키는 프로덕트 코치입니다.
+
+참석자의 아이디어와 이전 Q&A를 읽고, 아직 구체화되지 않은 부분을 파악하세요.
+아래 관점 중 이전 질문에서 다루지 않은 1가지를 골라 질문하세요:
+- 구현 방식: 핵심 기능이 기술적으로 어떻게 동작할지
+- 사용 흐름: 사용자가 처음 접속해서 목표를 달성하기까지의 단계
+- 성공 지표: 이 앱이 잘 되고 있는지 어떻게 판단할 건지
+- 차별점: 기존에 비슷한 걸 쓰고 있다면 뭐가 불편해서 새로 만들려는 건지
+- 확장 가능성: 첫 버전 이후 어떤 기능을 추가하고 싶은지
+
+규칙:
+- 질문은 한국어로, 2문장 이내로 작성
+- 이전 답변 내용을 반영해서 한 단계 더 깊이 들어가는 질문을 할 것
+- "더 자세히 알려주세요" 같은 일반적인 질문 금지
+- 질문만 출력하세요`;
+      userContent = `아이디어: ${idea.idea_text}\n\n이전 질문: ${idea.refinement_q1}\n답변: ${idea.refinement_a1}`;
     }
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-5-nano',
       messages: [
-        {
-          role: 'system',
-          content: `당신은 워크숍 참석자의 아이디어를 다듬어주는 코치입니다.
-참석자가 작성한 아이디어를 읽고, 부족하거나 더 구체화하면 좋을 부분을 파악하세요.
-타겟 사용자, 해결하려는 문제, 핵심 기능, 실현 가능성, 차별점 등의 관점에서 생각해보세요.
-짧고 친근한 한국어 질문 1개만 생성하세요. 질문만 출력하세요.`
-        },
-        {
-          role: 'user',
-          content: context,
-        },
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userContent },
       ],
       max_completion_tokens: 200,
     });
 
-    const question = completion.choices[0]?.message?.content?.trim() || '이 아이디어에 대해 더 자세히 알려주세요.';
+    const question = completion.choices[0]?.message?.content?.trim() || (
+      step === 1
+        ? '이 아이디어를 가장 먼저 사용할 사람은 누구이고, 그 사람이 지금 겪고 있는 가장 큰 불편함은 무엇인가요?'
+        : '첫 버전에서 반드시 동작해야 하는 핵심 기능 1가지는 무엇이고, 사용자는 그 기능을 어떤 상황에서 쓰게 되나요?'
+    );
 
     return NextResponse.json({ question });
   } catch (error) {
