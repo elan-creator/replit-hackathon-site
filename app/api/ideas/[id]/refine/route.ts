@@ -47,7 +47,7 @@ export async function POST(
           content: context,
         },
       ],
-      max_tokens: 200,
+      max_completion_tokens: 200,
     });
 
     const question = completion.choices[0]?.message?.content?.trim() || '이 아이디어에 대해 더 자세히 알려주세요.';
