@@ -44,8 +44,9 @@ A Next.js documentation/content site with an idea preparation feature for worksh
 ### Idea Board (`/ideas`)
 - **Submit**: Free-form idea submission with author name
 - **Refine**: AI generates 2 contextual follow-up questions based on idea content
+- **Prompt Generation**: After refinement, AI generates a Replit Agent setup prompt based on all idea info
 - **Gallery**: View all submitted ideas in a card grid (`/ideas/gallery`)
-- **Detail**: Click a card to view full idea with refinement Q&A (`/ideas/[id]`)
+- **Detail**: Click a card to view full idea with refinement Q&A and generated prompt (`/ideas/[id]`)
 
 ### Service Feedback (`/feedback`)
 - Admin registers service URLs → auto-generates thumbnail via thum.io
@@ -60,7 +61,7 @@ A Next.js documentation/content site with an idea preparation feature for worksh
 
 ## Database Schema
 
-- `ideas` table: id, author_name, idea_text, refinement_q1/a1, refinement_q2/a2, created_at
+- `ideas` table: id, author_name, idea_text, refinement_q1/a1, refinement_q2/a2, generated_prompt, created_at
 - `services` table: id, url (UNIQUE), title, thumbnail_url, created_at
 - `feedbacks` table: id, service_id (FK→services), service_url, service_title, author_name, feedback_text, image_data (base64), created_at
 - `retrospectives` table: id, author_name, keep_text, problem_text, try_text, created_at
