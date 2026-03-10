@@ -114,31 +114,34 @@ export default function RefineChat({ idea }: { idea: Idea }) {
   };
 
   const handleSubmitAnswer = async () => {
-    if (!answer.trim()) return;
+    if (!answer.trim() || isSubmitting) return;
     setIsSubmitting(true);
     setError('');
+
+    const trimmedAnswer = answer.trim();
+    const stepToSave = currentStep;
 
     try {
       const res = await fetch(`/api/ideas/${idea.id}/refine`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          step: currentStep,
+          step: stepToSave,
           question: currentQuestion,
-          answer: answer.trim(),
+          answer: trimmedAnswer,
         }),
       });
       if (!res.ok) throw new Error('Failed to save answer');
 
-      setCompletedSteps((prev) => [
-        ...prev,
-        { question: currentQuestion, answer: answer.trim() },
-      ]);
+      setCompletedSteps((prev) => {
+        if (prev.length >= stepToSave) return prev;
+        return [...prev, { question: currentQuestion, answer: trimmedAnswer }];
+      });
       setAnswer('');
 
-      if (currentStep < 2) {
-        setCurrentStep(currentStep + 1);
-        fetchQuestion(currentStep + 1);
+      if (stepToSave < 2) {
+        setCurrentStep(2);
+        fetchQuestion(2);
       } else {
         setCurrentStep(3);
         generatePrompt();
