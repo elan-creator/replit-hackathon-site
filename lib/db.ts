@@ -1,7 +1,10 @@
-import { Pool } from 'pg';
+let pool: any = null;
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+if (process.env.DATABASE_URL) {
+  const { Pool } = require('pg');
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
+}
 
 export default pool;
