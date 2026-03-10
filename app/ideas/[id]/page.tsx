@@ -1,6 +1,7 @@
 import pool from '@/lib/db';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import CopyButton from '@/components/CopyButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,6 +72,23 @@ export default async function IdeaDetailPage({ params }: { params: Promise<{ id:
           >
             아이디어 다듬기
           </Link>
+        </div>
+      )}
+
+      {idea.generated_prompt && (
+        <div className="mt-6 bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-green-400">레플릿 셋업 프롬프트</h2>
+            <CopyButton text={idea.generated_prompt} />
+          </div>
+          <div className="p-4 bg-gray-950 border border-gray-700 rounded-xl">
+            <p className="text-gray-200 text-sm leading-relaxed whitespace-pre-wrap font-mono">
+              {idea.generated_prompt}
+            </p>
+          </div>
+          <p className="text-gray-500 text-xs">
+            이 프롬프트를 복사하여 Replit Agent의 초기 셋업에 붙여넣으세요.
+          </p>
         </div>
       )}
     </div>

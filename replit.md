@@ -13,11 +13,14 @@ A Next.js documentation/content site with an idea preparation feature for worksh
 
 ## Project Structure
 
+- `middleware.ts` — Site-wide auth guard (cookie-based, redirects to /login)
 - `app/` — Next.js App Router pages and layouts
+  - `app/login/` — Login page (shared ID/PW)
   - `app/docs/` — Documentation pages (dynamic routing from content/)
   - `app/ideas/` — Idea board feature (form, refinement, gallery, detail)
   - `app/feedback/` — Service feedback feature
   - `app/retro/` — Daily retrospective (KPT) feature
+  - `app/api/auth/login/` — Login API endpoint
   - `app/api/ideas/` — API routes for idea CRUD and AI refinement
   - `app/api/services/` — API routes for service management and per-service feedback
   - `app/api/feedback/` — Legacy API for service feedback
@@ -33,9 +36,17 @@ A Next.js documentation/content site with an idea preparation feature for worksh
   - `db.ts` — PostgreSQL connection pool
   - `openai.ts` — OpenAI client
   - `docs.ts` — Documentation helpers
+  - `site-auth.ts` — Site auth token generation/verification (Web Crypto API, Edge-compatible)
+  - `auth.ts` — Delete password verification
 - `public/` — Static assets
 
 ## Features
+
+### Site Authentication
+- Shared ID/PW login (default: mfl / replit, configurable via SITE_USERNAME / SITE_PASSWORD env vars)
+- Cookie-based session (httpOnly, 7-day expiry)
+- Middleware redirects unauthenticated users to `/login`
+- Auth token generated via Web Crypto API (SHA-256, Edge Runtime compatible)
 
 ### Documentation Site
 - Markdown-based workshop guides with sidebar navigation
@@ -44,8 +55,9 @@ A Next.js documentation/content site with an idea preparation feature for worksh
 ### Idea Board (`/ideas`)
 - **Submit**: Free-form idea submission with author name
 - **Refine**: AI generates 2 contextual follow-up questions based on idea content
+- **Prompt Generation**: After refinement, AI generates a Replit Agent setup prompt based on all idea info
 - **Gallery**: View all submitted ideas in a card grid (`/ideas/gallery`)
-- **Detail**: Click a card to view full idea with refinement Q&A (`/ideas/[id]`)
+- **Detail**: Click a card to view full idea with refinement Q&A and generated prompt (`/ideas/[id]`)
 
 ### Service Feedback (`/feedback`)
 - Admin registers service URLs → auto-generates thumbnail via thum.io
@@ -60,7 +72,7 @@ A Next.js documentation/content site with an idea preparation feature for worksh
 
 ## Database Schema
 
-- `ideas` table: id, author_name, idea_text, refinement_q1/a1, refinement_q2/a2, created_at
+- `ideas` table: id, author_name, idea_text, refinement_q1/a1, refinement_q2/a2, generated_prompt, created_at
 - `services` table: id, url (UNIQUE), title, thumbnail_url, created_at
 - `feedbacks` table: id, service_id (FK→services), service_url, service_title, author_name, feedback_text, image_data (base64), created_at
 - `retrospectives` table: id, author_name, keep_text, problem_text, try_text, created_at
