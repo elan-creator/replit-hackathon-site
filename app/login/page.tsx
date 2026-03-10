@@ -40,6 +40,11 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-950 px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
+          <img
+            src="/login-banner.png"
+            alt="MarketFitLab x Replit"
+            className="mx-auto mb-6 w-full max-w-xs rounded-lg"
+          />
           <h1 className="text-2xl font-bold text-gray-100">바이브코딩 워크샵</h1>
           <p className="text-gray-400 text-sm mt-2">참가자 전용 페이지입니다</p>
         </div>
