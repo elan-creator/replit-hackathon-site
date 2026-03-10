@@ -14,15 +14,22 @@ interface IdeaRow {
 
 function buildFallbackPrompt(idea: IdeaRow): string {
   const ideaSummary = idea.idea_text.split(/[.。!?\n]/)[0].trim().replace(/앱\s*$/, '').trim();
-  const a1Summary = idea.refinement_a1.split(/[.。!?\n]/)[0].trim();
-  const a2Summary = idea.refinement_a2.split(/[.。!?\n]/)[0].trim();
 
-  return `"${ideaSummary}" 앱을 만들어주세요.
+  return `${ideaSummary} 앱을 만들어주세요.
 
-주요 사용자: ${a1Summary}
-핵심 기능: ${a2Summary}
+1. 문제 정의
+${idea.refinement_a1}
 
-한 페이지짜리 웹앱으로 만들어주세요. 외부 API 연동 없이 핵심 기능만 동작하면 됩니다. 디자인은 깔끔하고 모바일에서도 잘 보이게 해주세요.`;
+2. 핵심 기능 (MVP)
+${idea.refinement_a2}
+
+3. 사용자 플로우
+- 앱 접속 → 핵심 기능 사용 → 결과 확인
+
+4. 화면 구성
+- 메인 페이지: 핵심 기능이 동작하는 단일 페이지
+
+외부 API 연동 없이 핵심 기능만 동작하면 됩니다. 디자인은 깔끔하고 모바일에서도 잘 보이게 해주세요.`;
 }
 
 export async function GET(
@@ -74,17 +81,28 @@ export async function POST(
       return NextResponse.json({ prompt: idea.generated_prompt });
     }
 
-    const systemPrompt = `사용자의 아이디어를 바탕으로 Replit Agent에 입력할 최초 셋업 프롬프트를 작성하세요.
+    const systemPrompt = `사용자의 아이디어와 Q&A를 바탕으로 Replit Agent에 입력할 약식 PRD(제품 요구사항) 프롬프트를 작성하세요.
 
-목표: Replit Agent가 이 프롬프트만으로 5~10분 안에 동작하는 첫 화면을 만들 수 있어야 합니다.
+아래 형식을 정확히 따르세요:
+
+[앱 이름]: [한 줄 설명]
+
+1. 문제 정의
+- 타겟 사용자가 누구이고 어떤 불편함을 겪고 있는지 2~3문장
+
+2. 핵심 기능 (MVP)
+- 첫 버전에서 반드시 동작해야 할 기능 2~3개를 bullet으로
+
+3. 사용자 플로우
+- 사용자가 앱에 접속해서 목표를 달성하기까지의 흐름을 3~5단계로
+
+4. 화면 구성
+- 필요한 페이지/화면 1~3개와 각 화면의 핵심 요소
 
 규칙:
-- 앱 이름과 한 줄 설명으로 시작
-- 핵심 기능 1~3개만 포함 (MVP 수준, 외부 API 연동이나 알림 같은 부가기능 제외)
-- 화면 구성은 1~2개 페이지로 제한
-- 기술 스택, DB 스키마, API 설계, 테스트 시나리오 등 상세 설계는 절대 포함하지 마세요
-- 전체 길이 300자 내외로 간결하게
-- 한국어로 작성. 프롬프트 텍스트만 출력. 제목이나 부연 설명 없이.`;
+- 외부 API 연동, 알림, 인증 등 부가기능은 제외하고 핵심만
+- 기술 스택, DB 스키마, API 설계는 포함하지 마세요
+- 한국어로 작성. 프롬프트 텍스트만 출력.`;
 
     const userContent = `아이디어: ${idea.idea_text}
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Idea {
@@ -14,40 +14,50 @@ interface Idea {
   generated_prompt: string | null;
 }
 
+function getInitialState(idea: Idea) {
+  const steps: { question: string; answer: string }[] = [];
+  let step = 1;
+  let loading = true;
+
+  if (idea.refinement_q1 && idea.refinement_a1) {
+    steps.push({ question: idea.refinement_q1, answer: idea.refinement_a1 });
+    if (idea.refinement_q2 && idea.refinement_a2) {
+      steps.push({ question: idea.refinement_q2, answer: idea.refinement_a2 });
+      step = 3;
+      loading = false;
+    } else {
+      step = 2;
+    }
+  }
+
+  return { steps, step, loading };
+}
+
 export default function RefineChat({ idea }: { idea: Idea }) {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(1);
+  const initial = getInitialState(idea);
+  const [currentStep, setCurrentStep] = useState(initial.step);
   const [currentQuestion, setCurrentQuestion] = useState('');
   const [answer, setAnswer] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(initial.loading);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [completedSteps, setCompletedSteps] = useState<
-    { question: string; answer: string }[]
-  >([]);
-  const [generatedPrompt, setGeneratedPrompt] = useState('');
+  const [completedSteps, setCompletedSteps] = useState(initial.steps);
+  const [generatedPrompt, setGeneratedPrompt] = useState(idea.generated_prompt || '');
   const [promptLoading, setPromptLoading] = useState(false);
   const [promptError, setPromptError] = useState('');
   const [copied, setCopied] = useState(false);
+  const didInit = useRef(false);
 
   useEffect(() => {
-    if (idea.refinement_q1 && idea.refinement_a1) {
-      setCompletedSteps([{ question: idea.refinement_q1, answer: idea.refinement_a1 }]);
-      if (idea.refinement_q2 && idea.refinement_a2) {
-        setCompletedSteps([
-          { question: idea.refinement_q1, answer: idea.refinement_a1 },
-          { question: idea.refinement_q2, answer: idea.refinement_a2 },
-        ]);
-        setCurrentStep(3);
-        setIsLoading(false);
-        if (idea.generated_prompt) {
-          setGeneratedPrompt(idea.generated_prompt);
-        } else {
-          generatePrompt();
-        }
-        return;
+    if (didInit.current) return;
+    didInit.current = true;
+
+    if (initial.step === 3) {
+      if (!idea.generated_prompt) {
+        generatePrompt();
       }
-      setCurrentStep(2);
+      return;
     }
     fetchQuestion(idea.refinement_q1 ? 2 : 1);
   }, []);
