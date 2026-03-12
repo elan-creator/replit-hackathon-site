@@ -7,9 +7,19 @@ const VALID_AI_EXP = ['전혀 없음', '사용해 본 적 있음', '가끔 활�
 const VALID_CODING_EXP = ['전혀 없음', '기초 지식만 있음', '간단한 스크립트 작성 가능', '프로젝트 경험 있음', '개발자 수준'];
 const VALID_EXPECTATIONS = ['AI 코딩 경험', '아이디어 구체화', '직접 앱 만들기', '새로운 도구·기술 학습', '네트워킹', '기타'];
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const result = await pool.query('SELECT * FROM surveys ORDER BY created_at DESC');
+    const cohortIdParam = req.nextUrl.searchParams.get('cohort_id');
+    let result;
+    if (cohortIdParam) {
+      const cohortId = parseInt(cohortIdParam, 10);
+      if (isNaN(cohortId)) {
+        return NextResponse.json({ error: 'Invalid cohort_id' }, { status: 400 });
+      }
+      result = await pool.query('SELECT * FROM surveys WHERE cohort_id = $1 ORDER BY created_at DESC', [cohortId]);
+    } else {
+      result = await pool.query('SELECT * FROM surveys ORDER BY created_at DESC');
+    }
     return NextResponse.json(result.rows);
   } catch (error) {
     console.error('Failed to fetch surveys:', error);
@@ -20,7 +30,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { author_name, role, company, replit_experience, ai_experience, coding_experience, expectations, goal } = body;
+    const { author_name, role, company, replit_experience, ai_experience, coding_experience, expectations, goal, cohort_id } = body;
 
     if (!author_name || typeof author_name !== 'string' || author_name.trim().length === 0 || author_name.length > 100) {
       return NextResponse.json({ error: '이름을 입력해주세요. (최대 100자)' }, { status: 400 });
@@ -52,8 +62,8 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await pool.query(
-      `INSERT INTO surveys (author_name, role, company, replit_experience, ai_experience, coding_experience, expectations, goal)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      `INSERT INTO surveys (author_name, role, company, replit_experience, ai_experience, coding_experience, expectations, goal, cohort_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
       [
         author_name.trim(),
         role,
@@ -63,6 +73,7 @@ export async function POST(req: NextRequest) {
         coding_experience,
         expectations || [],
         goal?.trim() || null,
+        cohort_id || null,
       ]
     );
 

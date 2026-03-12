@@ -1,15 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const result = await pool.query(`
-      SELECT s.*, COUNT(f.id)::int AS feedback_count
-      FROM services s
-      LEFT JOIN feedbacks f ON f.service_id = s.id
-      GROUP BY s.id
-      ORDER BY s.created_at DESC
-    `);
+    const cohortIdParam = req.nextUrl.searchParams.get('cohort_id');
+    let result;
+    if (cohortIdParam) {
+      const cohortId = parseInt(cohortIdParam, 10);
+      if (isNaN(cohortId)) {
+        return NextResponse.json({ error: 'Invalid cohort_id' }, { status: 400 });
+      }
+      result = await pool.query(`
+        SELECT s.*, COUNT(f.id)::int AS feedback_count
+        FROM services s
+        LEFT JOIN feedbacks f ON f.service_id = s.id
+        WHERE s.cohort_id = $1
+        GROUP BY s.id
+        ORDER BY s.created_at DESC
+      `, [cohortId]);
+    } else {
+      result = await pool.query(`
+        SELECT s.*, COUNT(f.id)::int AS feedback_count
+        FROM services s
+        LEFT JOIN feedbacks f ON f.service_id = s.id
+        GROUP BY s.id
+        ORDER BY s.created_at DESC
+      `);
+    }
     return NextResponse.json(result.rows);
   } catch (error) {
     console.error('Failed to fetch services:', error);
@@ -20,7 +37,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { url, title } = body;
+    const { url, title, cohort_id } = body;
 
     if (!url || typeof url !== 'string' || url.trim().length === 0) {
       return NextResponse.json({ error: '서비스 URL을 입력해주세요.' }, { status: 400 });
@@ -52,9 +69,9 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await pool.query(
-      `INSERT INTO services (url, title, thumbnail_url)
-       VALUES ($1, $2, $3) RETURNING *`,
-      [url.trim(), title.trim(), thumbnailData]
+      `INSERT INTO services (url, title, thumbnail_url, cohort_id)
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [url.trim(), title.trim(), thumbnailData, cohort_id || null]
     );
 
     return NextResponse.json(result.rows[0], { status: 201 });

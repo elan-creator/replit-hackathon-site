@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function RetroForm({ onSubmitted }: { onSubmitted: () => void }) {
+export default function RetroForm({ onSubmitted, cohortId }: { onSubmitted: () => void; cohortId: number | null }) {
   const [authorName, setAuthorName] = useState('');
   const [keepText, setKeepText] = useState('');
   const [problemText, setProblemText] = useState('');
@@ -23,6 +23,7 @@ export default function RetroForm({ onSubmitted }: { onSubmitted: () => void }) 
           keep_text: keepText,
           problem_text: problemText,
           try_text: tryText,
+          cohort_id: cohortId,
         }),
       });
       if (!res.ok) {

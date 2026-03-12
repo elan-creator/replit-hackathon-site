@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const result = await pool.query(
-      'SELECT * FROM ideas ORDER BY created_at DESC'
-    );
+    const cohortIdParam = req.nextUrl.searchParams.get('cohort_id');
+    let result;
+    if (cohortIdParam) {
+      const cohortId = parseInt(cohortIdParam, 10);
+      if (isNaN(cohortId)) {
+        return NextResponse.json({ error: 'Invalid cohort_id' }, { status: 400 });
+      }
+      result = await pool.query('SELECT * FROM ideas WHERE cohort_id = $1 ORDER BY created_at DESC', [cohortId]);
+    } else {
+      result = await pool.query('SELECT * FROM ideas ORDER BY created_at DESC');
+    }
     return NextResponse.json(result.rows);
   } catch (error) {
     console.error('Failed to fetch ideas:', error);
@@ -16,7 +24,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { author_name, idea_text } = body;
+    const { author_name, idea_text, cohort_id } = body;
 
     if (!author_name || !idea_text) {
       return NextResponse.json(
@@ -40,8 +48,8 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await pool.query(
-      'INSERT INTO ideas (author_name, idea_text) VALUES ($1, $2) RETURNING *',
-      [author_name.trim(), idea_text.trim()]
+      'INSERT INTO ideas (author_name, idea_text, cohort_id) VALUES ($1, $2, $3) RETURNING *',
+      [author_name.trim(), idea_text.trim(), cohort_id || null]
     );
 
     return NextResponse.json(result.rows[0], { status: 201 });

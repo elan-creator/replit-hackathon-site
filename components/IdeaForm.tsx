@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function IdeaForm() {
+export default function IdeaForm({ cohortId }: { cohortId?: number | null }) {
   const router = useRouter();
   const [authorName, setAuthorName] = useState('');
   const [ideaText, setIdeaText] = useState('');
@@ -28,6 +28,7 @@ export default function IdeaForm() {
         body: JSON.stringify({
           author_name: authorName.trim(),
           idea_text: ideaText.trim(),
+          cohort_id: cohortId || null,
         }),
       });
 

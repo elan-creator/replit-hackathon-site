@@ -25,8 +25,9 @@ A Next.js documentation/content site with an idea preparation feature for worksh
   - `app/api/ideas/` — API routes for idea CRUD and AI refinement
   - `app/api/services/` — API routes for service management and per-service feedback
   - `app/api/feedback/` — Legacy API for service feedback
-  - `app/api/surveys/` — API routes for pre-survey CRUD
+    - `app/api/surveys/` — API routes for pre-survey CRUD
   - `app/api/retrospectives/` — API routes for daily retrospectives
+  - `app/api/cohorts/` — API routes for cohort (event) CRUD (admin password protected)
 - `components/` — Shared React components
   - `DocsLayout.tsx`, `Sidebar.tsx` — Documentation layout
   - `IdeaForm.tsx` — Idea submission form
@@ -34,6 +35,7 @@ A Next.js documentation/content site with an idea preparation feature for worksh
   - `IdeaCard.tsx` — Idea display card for gallery
   - `SurveyForm.tsx` — Pre-survey form with 3 sections
   - `RetroForm.tsx` — KPT retrospective form
+  - `CohortSelector.tsx` — Date-based event cohort selector (admin can add new events)
 - `content/` — MDX/markdown content files
 - `lib/` — Utility functions
   - `db.ts` — PostgreSQL connection pool
@@ -80,13 +82,22 @@ A Next.js documentation/content site with an idea preparation feature for worksh
 - Submit and share retrospectives with other participants
 - View all retrospectives in a card grid
 
+### Cohort System
+- Date-based event grouping — each workshop date is a separate cohort
+- CohortSelector appears on all activity pages (survey, ideas, gallery, feedback, retro)
+- Default: auto-selects nearest future event; falls back to most recent past event
+- Display: `🟢 2026.04.15` or `🟢 2026.04.15 · 삼성전자` (green dot = future, gray = past)
+- Admin can register new events via dropdown (requires delete password: `altnpf`)
+- All participant data (surveys, ideas, services, retrospectives) is filtered by selected cohort
+
 ## Database Schema
 
-- `ideas` table: id, author_name, idea_text, refinement_q1/a1, refinement_q2/a2, generated_prompt, created_at
-- `services` table: id, url (UNIQUE), title, thumbnail_url, created_at
+- `cohorts` table: id, event_date (DATE UNIQUE), company, is_active, created_at
+- `ideas` table: id, author_name, idea_text, refinement_q1/a1, refinement_q2/a2, generated_prompt, cohort_id (FK→cohorts), created_at
+- `services` table: id, url (UNIQUE), title, thumbnail_url, cohort_id (FK→cohorts), created_at
 - `feedbacks` table: id, service_id (FK→services), service_url, service_title, author_name, feedback_text, image_data (base64), created_at
-- `surveys` table: id, author_name, role, company, replit_experience, ai_experience, coding_experience, expectations (text[]), goal, created_at
-- `retrospectives` table: id, author_name, keep_text, problem_text, try_text, created_at
+- `surveys` table: id, author_name, role, company, replit_experience, ai_experience, coding_experience, expectations (text[]), goal, cohort_id (FK→cohorts), created_at
+- `retrospectives` table: id, author_name, keep_text, problem_text, try_text, cohort_id (FK→cohorts), created_at
 
 ## Running the App
 

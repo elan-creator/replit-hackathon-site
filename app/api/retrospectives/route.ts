@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const result = await pool.query(
-      'SELECT * FROM retrospectives ORDER BY created_at DESC'
-    );
+    const cohortIdParam = req.nextUrl.searchParams.get('cohort_id');
+    let result;
+    if (cohortIdParam) {
+      const cohortId = parseInt(cohortIdParam, 10);
+      if (isNaN(cohortId)) {
+        return NextResponse.json({ error: 'Invalid cohort_id' }, { status: 400 });
+      }
+      result = await pool.query('SELECT * FROM retrospectives WHERE cohort_id = $1 ORDER BY created_at DESC', [cohortId]);
+    } else {
+      result = await pool.query('SELECT * FROM retrospectives ORDER BY created_at DESC');
+    }
     return NextResponse.json(result.rows);
   } catch (error) {
     console.error('Failed to fetch retrospectives:', error);
@@ -16,7 +24,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { author_name, keep_text, problem_text, try_text } = body;
+    const { author_name, keep_text, problem_text, try_text, cohort_id } = body;
 
     if (!author_name || typeof author_name !== 'string' || author_name.trim().length === 0 || author_name.length > 100) {
       return NextResponse.json({ error: '이름을 입력해주세요. (최대 100자)' }, { status: 400 });
@@ -32,9 +40,9 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await pool.query(
-      `INSERT INTO retrospectives (author_name, keep_text, problem_text, try_text)
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [author_name.trim(), keep_text.trim(), problem_text.trim(), try_text.trim()]
+      `INSERT INTO retrospectives (author_name, keep_text, problem_text, try_text, cohort_id)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [author_name.trim(), keep_text.trim(), problem_text.trim(), try_text.trim(), cohort_id || null]
     );
 
     return NextResponse.json(result.rows[0], { status: 201 });

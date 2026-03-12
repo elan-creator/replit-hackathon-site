@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import IdeaCard from '@/components/IdeaCard';
+import CohortSelector from '@/components/CohortSelector';
 import Link from 'next/link';
 
 interface Idea {
@@ -18,25 +19,28 @@ interface Idea {
 export default function GalleryPage() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cohortId, setCohortId] = useState<number | null>(null);
 
   const fetchIdeas = useCallback(async () => {
+    if (!cohortId) { setLoading(false); setIdeas([]); return; }
     try {
-      const res = await fetch('/api/ideas');
+      const res = await fetch(`/api/ideas?cohort_id=${cohortId}`);
       if (res.ok) setIdeas(await res.json());
     } catch {
       console.error('Failed to fetch ideas');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [cohortId]);
 
   useEffect(() => {
+    setLoading(true);
     fetchIdeas();
-  }, [fetchIdeas]);
+  }, [cohortId, fetchIdeas]);
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">아이디어 모아보기</h1>
           <p className="text-gray-400 text-sm">
@@ -54,6 +58,8 @@ export default function GalleryPage() {
           새 아이디어 작성
         </Link>
       </div>
+
+      <CohortSelector selectedCohortId={cohortId} onSelect={setCohortId} />
 
       {!loading && ideas.length === 0 ? (
         <div className="text-center py-16">

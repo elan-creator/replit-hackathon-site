@@ -78,7 +78,7 @@ function LevelSelector({ label, levels, value, onChange }: {
   );
 }
 
-export default function SurveyForm({ onSubmitted }: { onSubmitted: () => void }) {
+export default function SurveyForm({ onSubmitted, cohortId }: { onSubmitted: () => void; cohortId: number | null }) {
   const [authorName, setAuthorName] = useState('');
   const [role, setRole] = useState('');
   const [roleCustom, setRoleCustom] = useState('');
@@ -127,6 +127,7 @@ export default function SurveyForm({ onSubmitted }: { onSubmitted: () => void })
           coding_experience: codingExp,
           expectations: expectations.map(e => e === '기타' && expectationCustom.trim() ? `기타: ${expectationCustom.trim()}` : e),
           goal: goal || null,
+          cohort_id: cohortId,
         }),
       });
       if (!res.ok) {

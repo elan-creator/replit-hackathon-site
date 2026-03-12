@@ -1,4 +1,8 @@
+'use client';
+
+import { useState } from 'react';
 import IdeaForm from '@/components/IdeaForm';
+import CohortSelector from '@/components/CohortSelector';
 import Link from 'next/link';
 
 const galleryExamples = [
@@ -35,6 +39,8 @@ const galleryExamples = [
 ];
 
 export default function IdeasPage() {
+  const [cohortId, setCohortId] = useState<number | null>(null);
+
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-8">
@@ -44,7 +50,10 @@ export default function IdeasPage() {
           제출 후 AI가 아이디어를 더 구체화할 수 있도록 질문을 드립니다.
         </p>
       </div>
-      <IdeaForm />
+
+      <CohortSelector selectedCohortId={cohortId} onSelect={setCohortId} />
+
+      <IdeaForm cohortId={cohortId} />
 
       <div className="mt-16 pt-8 border-t border-gray-800">
         <h2 className="text-xl font-bold text-white mb-2">이런 것도 만들 수 있어요</h2>
