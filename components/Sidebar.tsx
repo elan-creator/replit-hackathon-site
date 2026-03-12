@@ -62,6 +62,7 @@ export default function Sidebar({ navigation, isOpen, onClose }: { navigation: N
               key: 'activity',
               label: '📝 참가자 활동',
               items: [
+                { href: '/survey', label: '사전 설문' },
                 { href: '/feedback', label: '서비스 피드백' },
                 { href: '/retro', label: '일일 회고' },
               ],

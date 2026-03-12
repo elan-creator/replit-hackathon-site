@@ -18,18 +18,21 @@ A Next.js documentation/content site with an idea preparation feature for worksh
   - `app/login/` — Login page (shared ID/PW)
   - `app/docs/` — Documentation pages (dynamic routing from content/)
   - `app/ideas/` — Idea board feature (form, refinement, gallery, detail)
+  - `app/survey/` — Pre-survey feature (participant background & expectations)
   - `app/feedback/` — Service feedback feature
   - `app/retro/` — Daily retrospective (KPT) feature
   - `app/api/auth/login/` — Login API endpoint
   - `app/api/ideas/` — API routes for idea CRUD and AI refinement
   - `app/api/services/` — API routes for service management and per-service feedback
   - `app/api/feedback/` — Legacy API for service feedback
+  - `app/api/surveys/` — API routes for pre-survey CRUD
   - `app/api/retrospectives/` — API routes for daily retrospectives
 - `components/` — Shared React components
   - `DocsLayout.tsx`, `Sidebar.tsx` — Documentation layout
   - `IdeaForm.tsx` — Idea submission form
   - `RefineChat.tsx` — AI-powered idea refinement chat UI
   - `IdeaCard.tsx` — Idea display card for gallery
+  - `SurveyForm.tsx` — Pre-survey form with 3 sections
   - `RetroForm.tsx` — KPT retrospective form
 - `content/` — MDX/markdown content files
 - `lib/` — Utility functions
@@ -65,6 +68,13 @@ A Next.js documentation/content site with an idea preparation feature for worksh
 - Click a service card → detail page with feedback form and feedback list
 - Multiple participants can leave feedback (text + optional screenshot) on each service
 
+### Pre-Survey (`/survey`)
+- 3 sections: participant info, prior experience (5-level scales), hackathon expectations
+- Section 1: Name, role (7 options), company
+- Section 2: Replit experience, AI assistant experience, coding experience (all 5-level)
+- Section 3: Expectations (multi-select), ultimate goal (free text)
+- Survey results displayed as card grid
+
 ### Daily Retrospective (`/retro`)
 - KPT (Keep, Problem, Try) framework
 - Submit and share retrospectives with other participants
@@ -75,6 +85,7 @@ A Next.js documentation/content site with an idea preparation feature for worksh
 - `ideas` table: id, author_name, idea_text, refinement_q1/a1, refinement_q2/a2, generated_prompt, created_at
 - `services` table: id, url (UNIQUE), title, thumbnail_url, created_at
 - `feedbacks` table: id, service_id (FK→services), service_url, service_title, author_name, feedback_text, image_data (base64), created_at
+- `surveys` table: id, author_name, role, company, replit_experience, ai_experience, coding_experience, expectations (text[]), goal, created_at
 - `retrospectives` table: id, author_name, keep_text, problem_text, try_text, created_at
 
 ## Running the App
