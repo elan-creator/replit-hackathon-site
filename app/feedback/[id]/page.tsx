@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import DeleteButton from '@/components/DeleteButton';
+import SuccessToast from '@/components/SuccessToast';
 
 interface Service {
   id: number;
@@ -29,6 +30,7 @@ export default function ServiceFeedbackPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -93,6 +95,7 @@ export default function ServiceFeedbackPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess(false);
     setSubmitting(true);
     try {
       const res = await fetch(`/api/services/${id}/feedback`, {
@@ -110,6 +113,7 @@ export default function ServiceFeedbackPage() {
       setFeedbackText('');
       setImagePreview(null);
       if (fileRef.current) fileRef.current.value = '';
+      setSuccess(true);
       fetchData();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : '오류가 발생했습니다.');
@@ -166,6 +170,11 @@ export default function ServiceFeedbackPage() {
 
       <div className="mb-8">
         <h2 className="text-lg font-semibold text-white mb-4">피드백 남기기</h2>
+        {success && (
+          <div className="mb-4">
+            <SuccessToast message="피드백이 성공적으로 제출되었습니다!" onDismiss={() => setSuccess(false)} />
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
           <div>
             <label className="block text-xs text-gray-400 mb-1">피드백 내용 *</label>

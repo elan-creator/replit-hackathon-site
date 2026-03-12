@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import SuccessToast from './SuccessToast';
 
 export default function IdeaForm({ cohortId }: { cohortId?: number | null }) {
   const router = useRouter();
@@ -9,6 +10,7 @@ export default function IdeaForm({ cohortId }: { cohortId?: number | null }) {
   const [ideaText, setIdeaText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const noCohort = !cohortId;
 
@@ -45,7 +47,8 @@ export default function IdeaForm({ cohortId }: { cohortId?: number | null }) {
       }
 
       const idea = await res.json();
-      router.push(`/ideas/${idea.id}/refine`);
+      setSuccess(true);
+      setTimeout(() => router.push(`/ideas/${idea.id}/refine`), 1000);
     } catch (err) {
       setError(err instanceof Error ? err.message : '제출 중 오류가 발생했습니다.');
     } finally {
@@ -95,6 +98,10 @@ export default function IdeaForm({ cohortId }: { cohortId?: number | null }) {
         <p className="mt-1 text-xs text-gray-500">{ideaText.length}/5000</p>
       </div>
 
+      {success && (
+        <SuccessToast message="아이디어가 성공적으로 제출되었습니다! 잠시 후 다듬기 페이지로 이동합니다." onDismiss={() => setSuccess(false)} />
+      )}
+
       {error && (
         <div className="p-3 bg-red-900/30 border border-red-700 rounded-lg text-red-300 text-sm">
           {error}
@@ -103,7 +110,7 @@ export default function IdeaForm({ cohortId }: { cohortId?: number | null }) {
 
       <button
         type="submit"
-        disabled={isSubmitting || noCohort}
+        disabled={isSubmitting || noCohort || success}
         className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
       >
         {isSubmitting ? '제출 중...' : '아이디어 제출하고 다듬기 시작'}
