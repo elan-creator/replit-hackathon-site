@@ -60,6 +60,9 @@ export async function POST(req: NextRequest) {
         }
       }
     }
+    if (!cohort_id || typeof cohort_id !== 'number') {
+      return NextResponse.json({ error: '행사를 선택해주세요.' }, { status: 400 });
+    }
 
     const result = await pool.query(
       `INSERT INTO surveys (author_name, role, company, replit_experience, ai_experience, coding_experience, expectations, goal, cohort_id)
@@ -73,7 +76,7 @@ export async function POST(req: NextRequest) {
         coding_experience,
         expectations || [],
         goal?.trim() || null,
-        cohort_id || null,
+        cohort_id,
       ]
     );
 

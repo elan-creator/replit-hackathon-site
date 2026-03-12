@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import DeleteButton from '@/components/DeleteButton';
+import SuccessToast from '@/components/SuccessToast';
 import { useCohort } from '@/contexts/CohortContext';
 
 interface Service {
@@ -22,7 +23,10 @@ export default function FeedbackPage() {
   const [title, setTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const { selectedCohortId } = useCohort();
+
+  const noCohort = !selectedCohortId;
 
   const fetchServices = useCallback(async () => {
     if (!selectedCohortId) { setLoading(false); setServices([]); return; }
@@ -47,6 +51,13 @@ export default function FeedbackPage() {
   const handleAddService = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess(false);
+
+    if (!selectedCohortId) {
+      setError('사이드바에서 행사를 먼저 선택해주세요.');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch('/api/services', {
@@ -61,6 +72,7 @@ export default function FeedbackPage() {
       setUrl('');
       setTitle('');
       setShowForm(false);
+      setSuccess(true);
       fetchServices();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : '오류가 발생했습니다.');
@@ -75,7 +87,8 @@ export default function FeedbackPage() {
         <h1 className="text-3xl font-bold text-white">서비스 피드백</h1>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          disabled={noCohort}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
         >
           {showForm ? '닫기' : '서비스 등록'}
         </button>
@@ -83,6 +96,21 @@ export default function FeedbackPage() {
       <p className="text-gray-400 text-sm mb-6">
         등록된 서비스를 클릭하여 피드백을 남겨주세요.
       </p>
+
+      {noCohort && (
+        <div className="p-4 bg-yellow-900/30 border border-yellow-700 rounded-xl text-yellow-300 text-sm flex items-center gap-3 mb-6">
+          <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+          <span>사이드바에서 행사를 먼저 선택해주세요.</span>
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-6">
+          <SuccessToast message="서비스가 성공적으로 등록되었습니다!" onDismiss={() => setSuccess(false)} />
+        </div>
+      )}
 
       {showForm && (
         <form onSubmit={handleAddService} className="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-6 space-y-4">

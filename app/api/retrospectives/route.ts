@@ -38,11 +38,14 @@ export async function POST(req: NextRequest) {
     if (!try_text || typeof try_text !== 'string' || try_text.trim().length === 0 || try_text.length > 3000) {
       return NextResponse.json({ error: 'Try 항목을 입력해주세요. (최대 3000자)' }, { status: 400 });
     }
+    if (!cohort_id || typeof cohort_id !== 'number') {
+      return NextResponse.json({ error: '행사를 선택해주세요.' }, { status: 400 });
+    }
 
     const result = await pool.query(
       `INSERT INTO retrospectives (author_name, keep_text, problem_text, try_text, cohort_id)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [author_name.trim(), keep_text.trim(), problem_text.trim(), try_text.trim(), cohort_id || null]
+      [author_name.trim(), keep_text.trim(), problem_text.trim(), try_text.trim(), cohort_id]
     );
 
     return NextResponse.json(result.rows[0], { status: 201 });

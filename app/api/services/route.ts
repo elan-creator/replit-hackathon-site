@@ -53,6 +53,9 @@ export async function POST(req: NextRequest) {
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
       return NextResponse.json({ error: '서비스 이름을 입력해주세요.' }, { status: 400 });
     }
+    if (!cohort_id || typeof cohort_id !== 'number') {
+      return NextResponse.json({ error: '행사를 선택해주세요.' }, { status: 400 });
+    }
 
     let thumbnailData: string | null = null;
     try {
@@ -71,7 +74,7 @@ export async function POST(req: NextRequest) {
     const result = await pool.query(
       `INSERT INTO services (url, title, thumbnail_url, cohort_id)
        VALUES ($1, $2, $3, $4) RETURNING *`,
-      [url.trim(), title.trim(), thumbnailData, cohort_id || null]
+      [url.trim(), title.trim(), thumbnailData, cohort_id]
     );
 
     return NextResponse.json(result.rows[0], { status: 201 });

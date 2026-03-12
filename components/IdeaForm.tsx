@@ -10,9 +10,16 @@ export default function IdeaForm({ cohortId }: { cohortId?: number | null }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  const noCohort = !cohortId;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!cohortId) {
+      setError('사이드바에서 행사를 먼저 선택해주세요.');
+      return;
+    }
 
     if (!authorName.trim() || !ideaText.trim()) {
       setError('이름과 아이디어를 모두 입력해주세요.');
@@ -28,7 +35,7 @@ export default function IdeaForm({ cohortId }: { cohortId?: number | null }) {
         body: JSON.stringify({
           author_name: authorName.trim(),
           idea_text: ideaText.trim(),
-          cohort_id: cohortId || null,
+          cohort_id: cohortId,
         }),
       });
 
@@ -48,6 +55,15 @@ export default function IdeaForm({ cohortId }: { cohortId?: number | null }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {noCohort && (
+        <div className="p-4 bg-yellow-900/30 border border-yellow-700 rounded-xl text-yellow-300 text-sm flex items-center gap-3">
+          <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+          <span>사이드바에서 행사를 먼저 선택해주세요.</span>
+        </div>
+      )}
+
       <div>
         <label htmlFor="authorName" className="block text-sm font-medium text-gray-300 mb-2">
           이름
@@ -87,7 +103,7 @@ export default function IdeaForm({ cohortId }: { cohortId?: number | null }) {
 
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || noCohort}
         className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
       >
         {isSubmitting ? '제출 중...' : '아이디어 제출하고 다듬기 시작'}

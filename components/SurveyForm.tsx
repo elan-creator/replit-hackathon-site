@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import SuccessToast from './SuccessToast';
 
 const ROLES = ['PM', '디자이너', '마케터', '기획자', '대표/리더', 'HR', '재무', '영업', '기타'];
 const REPLIT_LEVELS = ['전혀 없음', '계정만 생성', '튜토리얼 경험', '개인 프로젝트 경험', '능숙하게 사용'];
@@ -91,6 +92,11 @@ export default function SurveyForm({ onSubmitted, cohortId }: { onSubmitted: () 
   const [goal, setGoal] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (success) setError('');
+  }, [success]);
 
   const toggleExpectation = (exp: string) => {
     setExpectations(prev => {
@@ -105,7 +111,9 @@ export default function SurveyForm({ onSubmitted, cohortId }: { onSubmitted: () 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess(false);
 
+    if (!cohortId) { setError('사이드바에서 행사를 먼저 선택해주세요.'); return; }
     if (!authorName.trim()) { setError('이름을 입력해주세요.'); return; }
     if (!role) { setError('직군/역할을 선택해주세요.'); return; }
     if (role === '기타' && !roleCustom.trim()) { setError('직군/역할을 직접 입력해주세요.'); return; }
@@ -134,6 +142,7 @@ export default function SurveyForm({ onSubmitted, cohortId }: { onSubmitted: () 
         const data = await res.json();
         throw new Error(data.error || '설문 제출에 실패했습니다.');
       }
+      setAuthorName('');
       setRole('');
       setRoleCustom('');
       setCompany('');
@@ -143,6 +152,7 @@ export default function SurveyForm({ onSubmitted, cohortId }: { onSubmitted: () 
       setExpectations([]);
       setExpectationCustom('');
       setGoal('');
+      setSuccess(true);
       onSubmitted();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : '오류가 발생했습니다.');
@@ -151,8 +161,23 @@ export default function SurveyForm({ onSubmitted, cohortId }: { onSubmitted: () 
     }
   };
 
+  const noCohort = !cohortId;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {noCohort && (
+        <div className="p-4 bg-yellow-900/30 border border-yellow-700 rounded-xl text-yellow-300 text-sm flex items-center gap-3">
+          <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+          <span>사이드바에서 행사를 먼저 선택해주세요.</span>
+        </div>
+      )}
+
+      {success && (
+        <SuccessToast message="설문이 성공적으로 제출되었습니다!" onDismiss={() => setSuccess(false)} />
+      )}
+
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
         <h3 className="text-sm font-semibold text-white flex items-center gap-2">
           <span className="inline-block px-2 py-0.5 bg-blue-600/20 text-blue-400 rounded text-xs">1</span>
@@ -259,8 +284,8 @@ export default function SurveyForm({ onSubmitted, cohortId }: { onSubmitted: () 
 
       <button
         type="submit"
-        disabled={loading}
-        className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors"
+        disabled={loading || noCohort}
+        className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
       >
         {loading ? '제출 중...' : '설문 제출'}
       </button>
