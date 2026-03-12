@@ -81,19 +81,25 @@ function LevelSelector({ label, levels, value, onChange }: {
 export default function SurveyForm({ onSubmitted }: { onSubmitted: () => void }) {
   const [authorName, setAuthorName] = useState('');
   const [role, setRole] = useState('');
+  const [roleCustom, setRoleCustom] = useState('');
   const [company, setCompany] = useState('');
   const [replitExp, setReplitExp] = useState('');
   const [aiExp, setAiExp] = useState('');
   const [codingExp, setCodingExp] = useState('');
   const [expectations, setExpectations] = useState<string[]>([]);
+  const [expectationCustom, setExpectationCustom] = useState('');
   const [goal, setGoal] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const toggleExpectation = (exp: string) => {
-    setExpectations(prev =>
-      prev.includes(exp) ? prev.filter(e => e !== exp) : [...prev, exp]
-    );
+    setExpectations(prev => {
+      if (prev.includes(exp)) {
+        if (exp === '기타') setExpectationCustom('');
+        return prev.filter(e => e !== exp);
+      }
+      return [...prev, exp];
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,6 +108,7 @@ export default function SurveyForm({ onSubmitted }: { onSubmitted: () => void })
 
     if (!authorName.trim()) { setError('이름을 입력해주세요.'); return; }
     if (!role) { setError('직군/역할을 선택해주세요.'); return; }
+    if (role === '기타' && !roleCustom.trim()) { setError('직군/역할을 직접 입력해주세요.'); return; }
     if (!replitExp) { setError('Replit 사용 경험을 선택해주세요.'); return; }
     if (!aiExp) { setError('AI 코딩 어시스턴트 경험을 선택해주세요.'); return; }
     if (!codingExp) { setError('코딩 경험을 선택해주세요.'); return; }
@@ -113,12 +120,12 @@ export default function SurveyForm({ onSubmitted }: { onSubmitted: () => void })
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           author_name: authorName,
-          role,
+          role: role === '기타' ? `기타: ${roleCustom.trim()}` : role,
           company: company || null,
           replit_experience: replitExp,
           ai_experience: aiExp,
           coding_experience: codingExp,
-          expectations,
+          expectations: expectations.map(e => e === '기타' && expectationCustom.trim() ? `기타: ${expectationCustom.trim()}` : e),
           goal: goal || null,
         }),
       });
@@ -127,11 +134,13 @@ export default function SurveyForm({ onSubmitted }: { onSubmitted: () => void })
         throw new Error(data.error || '설문 제출에 실패했습니다.');
       }
       setRole('');
+      setRoleCustom('');
       setCompany('');
       setReplitExp('');
       setAiExp('');
       setCodingExp('');
       setExpectations([]);
+      setExpectationCustom('');
       setGoal('');
       onSubmitted();
     } catch (err: unknown) {
@@ -160,7 +169,20 @@ export default function SurveyForm({ onSubmitted }: { onSubmitted: () => void })
             className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
           />
         </div>
-        <RadioGroup label="직군/역할" options={ROLES} value={role} onChange={setRole} />
+        <RadioGroup label="직군/역할" options={ROLES} value={role} onChange={(v) => { setRole(v); if (v !== '기타') setRoleCustom(''); }} />
+        {role === '기타' && (
+          <div>
+            <input
+              type="text"
+              value={roleCustom}
+              onChange={e => setRoleCustom(e.target.value)}
+              placeholder="직군/역할을 직접 입력해주세요"
+              maxLength={50}
+              autoFocus
+              className="w-full px-3 py-2 bg-gray-800 border border-blue-500 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-400"
+            />
+          </div>
+        )}
         <div>
           <label className="block text-xs text-gray-400 mb-1">회사/소속</label>
           <input
@@ -207,6 +229,17 @@ export default function SurveyForm({ onSubmitted }: { onSubmitted: () => void })
               </button>
             ))}
           </div>
+          {expectations.includes('기타') && (
+            <input
+              type="text"
+              value={expectationCustom}
+              onChange={e => setExpectationCustom(e.target.value)}
+              placeholder="기대하는 것을 직접 입력해주세요"
+              maxLength={100}
+              autoFocus
+              className="w-full mt-2 px-3 py-2 bg-gray-800 border border-purple-500 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-purple-400"
+            />
+          )}
         </div>
         <div>
           <label className="block text-xs text-gray-400 mb-1">궁극적으로 Replit과 AI 코딩을 어디에 활용하고 싶으신가요?</label>

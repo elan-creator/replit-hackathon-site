@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     if (!author_name || typeof author_name !== 'string' || author_name.trim().length === 0 || author_name.length > 100) {
       return NextResponse.json({ error: '이름을 입력해주세요. (최대 100자)' }, { status: 400 });
     }
-    if (!role || !VALID_ROLES.includes(role)) {
+    if (!role || (!VALID_ROLES.includes(role) && !role.startsWith('기타: '))) {
       return NextResponse.json({ error: '직군/역할을 선택해주세요.' }, { status: 400 });
     }
     if (company && (typeof company !== 'string' || company.length > 100)) {
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     }
     if (expectations) {
       for (const exp of expectations) {
-        if (!VALID_EXPECTATIONS.includes(exp)) {
+        if (!VALID_EXPECTATIONS.includes(exp) && !exp.startsWith('기타: ')) {
           return NextResponse.json({ error: `올바르지 않은 기대치 항목: ${exp}` }, { status: 400 });
         }
       }
