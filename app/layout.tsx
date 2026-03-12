@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { CohortProvider } from "@/contexts/CohortContext";
 
 export const metadata: Metadata = {
   title: "바이브코딩 워크샵",
@@ -14,7 +15,9 @@ export default function RootLayout({
   return (
     <html lang="ko" className="dark">
       <body className="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased">
-        {children}
+        <CohortProvider>
+          {children}
+        </CohortProvider>
       </body>
     </html>
   );

@@ -84,11 +84,13 @@ A Next.js documentation/content site with an idea preparation feature for worksh
 
 ### Cohort System
 - Date-based event grouping — each workshop date is a separate cohort
-- CohortSelector appears on all activity pages (survey, ideas, gallery, feedback, retro)
+- **Global CohortSelector** in sidebar (top, below "🚀 워크샵 문서") — single selector shared across all pages via React Context (`contexts/CohortContext.tsx`)
+- CohortProvider wraps root layout; silently handles API failures on login page (pre-auth)
 - Default: auto-selects nearest future event; falls back to most recent past event
 - Display: `🟢 2026.04.15` or `🟢 2026.04.15 · 삼성전자` (green dot = future, gray = past)
-- Admin can register new events via dropdown (requires delete password: `altnpf`)
+- Admin can register new events via sidebar dropdown (requires delete password: `altnpf`)
 - All participant data (surveys, ideas, services, retrospectives) is filtered by selected cohort
+- Page navigation preserves selected cohort — no need to re-select on each page
 
 ## Database Schema
 

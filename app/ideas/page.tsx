@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import IdeaForm from '@/components/IdeaForm';
-import CohortSelector from '@/components/CohortSelector';
 import Link from 'next/link';
+import { useCohort } from '@/contexts/CohortContext';
 
 const galleryExamples = [
   {
@@ -39,7 +38,7 @@ const galleryExamples = [
 ];
 
 export default function IdeasPage() {
-  const [cohortId, setCohortId] = useState<number | null>(null);
+  const { selectedCohortId } = useCohort();
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -51,9 +50,7 @@ export default function IdeasPage() {
         </p>
       </div>
 
-      <CohortSelector selectedCohortId={cohortId} onSelect={setCohortId} />
-
-      <IdeaForm cohortId={cohortId} />
+      <IdeaForm cohortId={selectedCohortId} />
 
       <div className="mt-16 pt-8 border-t border-gray-800">
         <h2 className="text-xl font-bold text-white mb-2">이런 것도 만들 수 있어요</h2>

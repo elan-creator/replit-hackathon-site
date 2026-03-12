@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import DeleteButton from '@/components/DeleteButton';
-import CohortSelector from '@/components/CohortSelector';
+import { useCohort } from '@/contexts/CohortContext';
 
 interface Service {
   id: number;
@@ -22,12 +22,12 @@ export default function FeedbackPage() {
   const [title, setTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [cohortId, setCohortId] = useState<number | null>(null);
+  const { selectedCohortId } = useCohort();
 
   const fetchServices = useCallback(async () => {
-    if (!cohortId) { setLoading(false); setServices([]); return; }
+    if (!selectedCohortId) { setLoading(false); setServices([]); return; }
     try {
-      const res = await fetch(`/api/services?cohort_id=${cohortId}`);
+      const res = await fetch(`/api/services?cohort_id=${selectedCohortId}`);
       if (res.ok) {
         const data = await res.json();
         setServices(data);
@@ -37,12 +37,12 @@ export default function FeedbackPage() {
     } finally {
       setLoading(false);
     }
-  }, [cohortId]);
+  }, [selectedCohortId]);
 
   useEffect(() => {
     setLoading(true);
     fetchServices();
-  }, [cohortId, fetchServices]);
+  }, [selectedCohortId, fetchServices]);
 
   const handleAddService = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +52,7 @@ export default function FeedbackPage() {
       const res = await fetch('/api/services', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, title, cohort_id: cohortId }),
+        body: JSON.stringify({ url, title, cohort_id: selectedCohortId }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -83,8 +83,6 @@ export default function FeedbackPage() {
       <p className="text-gray-400 text-sm mb-6">
         등록된 서비스를 클릭하여 피드백을 남겨주세요.
       </p>
-
-      <CohortSelector selectedCohortId={cohortId} onSelect={setCohortId} />
 
       {showForm && (
         <form onSubmit={handleAddService} className="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-6 space-y-4">

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import SurveyForm from '@/components/SurveyForm';
 import DeleteButton from '@/components/DeleteButton';
-import CohortSelector from '@/components/CohortSelector';
+import { useCohort } from '@/contexts/CohortContext';
 
 interface Survey {
   id: number;
@@ -37,12 +37,12 @@ function ExpBadge({ label, value, color }: { label: string; value: string; color
 export default function SurveyPage() {
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
-  const [cohortId, setCohortId] = useState<number | null>(null);
+  const { selectedCohortId } = useCohort();
 
   const fetchSurveys = useCallback(async () => {
-    if (!cohortId) { setLoading(false); setSurveys([]); return; }
+    if (!selectedCohortId) { setLoading(false); setSurveys([]); return; }
     try {
-      const res = await fetch(`/api/surveys?cohort_id=${cohortId}`);
+      const res = await fetch(`/api/surveys?cohort_id=${selectedCohortId}`);
       const data = await res.json();
       setSurveys(data);
     } catch {
@@ -50,12 +50,12 @@ export default function SurveyPage() {
     } finally {
       setLoading(false);
     }
-  }, [cohortId]);
+  }, [selectedCohortId]);
 
   useEffect(() => {
     setLoading(true);
     fetchSurveys();
-  }, [cohortId, fetchSurveys]);
+  }, [selectedCohortId, fetchSurveys]);
 
   return (
     <div>
@@ -64,9 +64,7 @@ export default function SurveyPage() {
         해커톤 참가 전 간단한 설문을 작성해주세요. 워크샵 진행에 참고됩니다.
       </p>
 
-      <CohortSelector selectedCohortId={cohortId} onSelect={setCohortId} />
-
-      <SurveyForm onSubmitted={fetchSurveys} cohortId={cohortId} />
+      <SurveyForm onSubmitted={fetchSurveys} cohortId={selectedCohortId} />
 
       <div className="mt-10">
         <h2 className="text-xl font-semibold text-white mb-4">

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import RetroForm from '@/components/RetroForm';
 import DeleteButton from '@/components/DeleteButton';
-import CohortSelector from '@/components/CohortSelector';
+import { useCohort } from '@/contexts/CohortContext';
 
 interface Retrospective {
   id: number;
@@ -17,12 +17,12 @@ interface Retrospective {
 export default function RetroPage() {
   const [retros, setRetros] = useState<Retrospective[]>([]);
   const [loading, setLoading] = useState(true);
-  const [cohortId, setCohortId] = useState<number | null>(null);
+  const { selectedCohortId } = useCohort();
 
   const fetchRetros = useCallback(async () => {
-    if (!cohortId) { setLoading(false); setRetros([]); return; }
+    if (!selectedCohortId) { setLoading(false); setRetros([]); return; }
     try {
-      const res = await fetch(`/api/retrospectives?cohort_id=${cohortId}`);
+      const res = await fetch(`/api/retrospectives?cohort_id=${selectedCohortId}`);
       const data = await res.json();
       setRetros(data);
     } catch {
@@ -30,12 +30,12 @@ export default function RetroPage() {
     } finally {
       setLoading(false);
     }
-  }, [cohortId]);
+  }, [selectedCohortId]);
 
   useEffect(() => {
     setLoading(true);
     fetchRetros();
-  }, [cohortId, fetchRetros]);
+  }, [selectedCohortId, fetchRetros]);
 
   return (
     <div>
@@ -44,9 +44,7 @@ export default function RetroPage() {
         오늘 하루를 KPT(Keep, Problem, Try) 프레임워크로 돌아보세요. 다른 참가자들의 회고도 함께 확인할 수 있습니다.
       </p>
 
-      <CohortSelector selectedCohortId={cohortId} onSelect={setCohortId} />
-
-      <RetroForm onSubmitted={fetchRetros} cohortId={cohortId} />
+      <RetroForm onSubmitted={fetchRetros} cohortId={selectedCohortId} />
 
       <div className="mt-10">
         <h2 className="text-xl font-semibold text-white mb-4">

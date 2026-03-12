@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import CohortSelector from './CohortSelector';
 
 interface NavItem {
   slug: string;
@@ -43,10 +44,11 @@ export default function Sidebar({ navigation, isOpen, onClose }: { navigation: N
     <>
       {isOpen && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={onClose} />}
       <aside className={`fixed top-0 left-0 h-full w-72 bg-gray-900 border-r border-gray-800 overflow-y-auto z-40 transition-transform lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="p-4 border-b border-gray-800">
+        <div className="p-4 border-b border-gray-800 space-y-3">
           <Link href="/docs/가이드/0-시작하기/주최사-소개" className="text-lg font-bold text-white hover:text-blue-400">
             🚀 워크샵 문서
           </Link>
+          <CohortSelector />
         </div>
         <nav className="p-3 text-sm">
           {[
