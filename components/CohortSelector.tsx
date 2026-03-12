@@ -24,7 +24,7 @@ function getCohortLabel(cohort: Cohort): string {
 }
 
 export default function CohortSelector() {
-  const { cohorts, selectedCohortId, setSelectedCohortId, refreshCohorts } = useCohort();
+  const { cohorts, selectedCohortId, setSelectedCohortId, refreshCohorts, isLoading } = useCohort();
   const [isOpen, setIsOpen] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newDate, setNewDate] = useState('');
@@ -77,6 +77,14 @@ export default function CohortSelector() {
       setAdding(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg">
+        <div className="h-5 bg-gray-700 rounded animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <div className="relative" ref={dropdownRef}>

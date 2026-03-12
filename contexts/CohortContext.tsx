@@ -14,6 +14,7 @@ interface CohortContextType {
   selectedCohortId: number | null;
   setSelectedCohortId: (id: number | null) => void;
   refreshCohorts: () => Promise<Cohort[]>;
+  isLoading: boolean;
 }
 
 const CohortContext = createContext<CohortContextType>({
@@ -21,6 +22,7 @@ const CohortContext = createContext<CohortContextType>({
   selectedCohortId: null,
   setSelectedCohortId: () => {},
   refreshCohorts: async () => [],
+  isLoading: true,
 });
 
 export function useCohort() {
@@ -46,6 +48,7 @@ function findDefaultCohort(cohorts: Cohort[]): Cohort | null {
 export function CohortProvider({ children }: { children: ReactNode }) {
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
   const [selectedCohortId, setSelectedCohortId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const initializedRef = useRef(false);
 
   const refreshCohorts = useCallback(async (): Promise<Cohort[]> => {
@@ -70,11 +73,12 @@ export function CohortProvider({ children }: { children: ReactNode }) {
         const def = findDefaultCohort(data);
         if (def) setSelectedCohortId(def.id);
       }
+      setIsLoading(false);
     });
   }, [refreshCohorts]);
 
   return (
-    <CohortContext.Provider value={{ cohorts, selectedCohortId, setSelectedCohortId, refreshCohorts }}>
+    <CohortContext.Provider value={{ cohorts, selectedCohortId, setSelectedCohortId, refreshCohorts, isLoading }}>
       {children}
     </CohortContext.Provider>
   );
