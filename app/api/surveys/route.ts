@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
-const VALID_ROLES = ['PM', '디자이너', '개발자', '마케터', '기획자', '대표/리더', 'HR', '재무', '영업', '기타'];
+const VALID_ROLES = ['PM', '디자이너', '마케터', '기획자', '대표/리더', 'HR', '재무', '영업', '기타'];
 const VALID_REPLIT_EXP = ['전혀 없음', '계정만 생성', '튜토리얼 경험', '개인 프로젝트 경험', '능숙하게 사용'];
 const VALID_AI_EXP = ['전혀 없음', '사용해 본 적 있음', '가끔 활용', '업무에 활용 중', '능숙하게 활용 중'];
 const VALID_CODING_EXP = ['전혀 없음', '기초 지식만 있음', '간단한 스크립트 작성 가능', '프로젝트 경험 있음', '개발자 수준'];
