@@ -37,6 +37,7 @@ export default function Sidebar({ navigation, isOpen, onClose }: { navigation: N
   const sectionLabels: Record<string, string> = {
     '가이드': '📚 가이드',
     'references': '📖 references',
+    'replit-docs': '🚀 Replit 공식 문서',
   };
 
   return (

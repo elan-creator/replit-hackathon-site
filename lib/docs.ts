@@ -63,10 +63,11 @@ export function getNavigation(): NavSection[] {
   const docs = getAllDocs();
   const sections: Map<string, Map<string, { slug: string; title: string }[]>> = new Map();
   
-  const sectionOrder = ['가이드', 'references'];
+  const sectionOrder = ['가이드', 'references', 'replit-docs'];
   const subsectionOrder: Record<string, string[]> = {
     '가이드': ['0-시작하기', '1-아이디어-to-MVP', '2-고도화', '3-연동-가이드', '4-실전과제'],
     'references': ['1-사례', '2-레플릿-설명', '3-임팩트-만들기'],
+    'replit-docs': [''],
   };
 
   for (const doc of docs) {
